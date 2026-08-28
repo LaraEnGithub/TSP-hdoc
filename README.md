@@ -1,9 +1,9 @@
 # TSP-hyoc
 ---
-(Próxima) Implementación del recocido simulado para resolver instancias del Probelma del Agente Viajero
+(Próxima) Implementación del recocido simulado para resolver instancias del Problema del Agente Viajero
 ---
 
-El proyecto está escrito para **Java 21**. Para compilar el proyecto se usa **Maven 3.8.7**. Para ejecutar los *tests* se usa **JUnit 5**.
+El proyecto está escrito para **Java 21**. Para compilar el proyecto se usa **Maven 3.8.7**. Para ejecutar los *tests* se usa **JUnit 5**. Para la lectura de datos se usa SQLite (vía `sqlite-jdbc`).
 
 ### Compilar
 
@@ -29,8 +29,7 @@ mvn -q test
 
 ```bash
 mvn package
-java -jar target/tsp-1.0-SNAPSHOT.jar
-
+java -jar target/tsp-1.0-SNAPSHOT-jar-with-dependencies.jar <ruta/archivo.sql>
 ```
 Para empaquetar sin correr pruebas:
 

@@ -1,5 +1,3 @@
 target/
 *.class
 *.jar
-data/tsp.db
-data/tsp.sql

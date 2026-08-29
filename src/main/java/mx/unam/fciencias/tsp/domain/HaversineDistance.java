@@ -1,22 +1,8 @@
 package mx.unam.fciencias.tsp.domain;
 
-/**
- * Definition 4.1.3: the natural distance between two points on the Earth.
- *
- * <p>Coordinates come in as degrees, which is what the database stores and what
- * gets reported back to the user; the conversion of equation 4.1 happens inside.
- *
- * <p>Two details that are easy to get wrong and hard to notice. {@code A} must be
- * clamped to {@code [0, 1]} before the square root, or floating-point error can push
- * it just above 1 for coincident or near-antipodal points and
- * {@code Math.sqrt(1 - A)} returns {@code NaN}, which then propagates silently
- * through the whole cost sum. And the definition's {@code arctan(√A, √(1−A))} is
- * {@code Math.atan2(Math.sqrt(A), Math.sqrt(1 - A))} in that order: swapping the
- * arguments yields the complement, which looks plausible and is wrong.
- */
 public final class HaversineDistance {
 
-    /** Radius used by definition 4.1.3, in meters. */
+    /** Radius in meters. */
     public static final double EARTH_RADIUS_METERS = 6_373_000.0;
 
     private HaversineDistance() {
@@ -31,6 +17,19 @@ public final class HaversineDistance {
      */
     public static double between(double latitudeA, double longitudeA,
                                  double latitudeB, double longitudeB) {
-        throw new UnsupportedOperationException("pending");
+        double latitudeARadians = Math.toRadians(latitudeA);
+        double latitudeBRadians = Math.toRadians(latitudeB);
+        double deltaLatitude = latitudeBRadians - latitudeARadians;
+        double deltaLongitude = Math.toRadians(longitudeB) - Math.toRadians(longitudeA);
+
+        double sinHalfLatitude = Math.sin(deltaLatitude / 2.0);
+        double sinHalfLongitude = Math.sin(deltaLongitude / 2.0);
+        double a = sinHalfLatitude * sinHalfLatitude
+                + Math.cos(latitudeARadians) * Math.cos(latitudeBRadians)
+                * sinHalfLongitude * sinHalfLongitude;
+        double clamped = Math.min(1.0, Math.max(0.0, a));
+
+        return 2.0 * EARTH_RADIUS_METERS
+                * Math.atan2(Math.sqrt(clamped), Math.sqrt(1.0 - clamped));
     }
 }

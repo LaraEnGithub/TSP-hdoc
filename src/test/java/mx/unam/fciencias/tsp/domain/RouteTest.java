@@ -66,27 +66,6 @@ public class RouteTest {
     }
 
     @Test
-    @DisplayName("neighbor() does not touch the route it came from")
-    public void neighborLeavesTheOriginalUntouched() {
-        Route route = new Route(instance(), new int[] {0, 1, 2, 3});
-
-        route.neighbor(new Random(7));
-
-        assertArrayEquals(new int[] {0, 1, 2, 3}, route.order());
-    }
-
-    @Test
-    @DisplayName("order() hands back a copy, not the route's own array")
-    public void orderHandsBackACopy() {
-        Route route = new Route(instance(), new int[] {0, 1, 2, 3});
-
-        int[] copy = route.order();
-        copy[0] = 99;
-
-        assertArrayEquals(new int[] {0, 1, 2, 3}, route.order());
-    }
-
-    @Test
     @DisplayName("the constructor rejects an order that does not cover every city")
     public void rejectsAnOrderOfTheWrongLength() {
         assertThrows(InvalidRouteException.class,

@@ -11,7 +11,7 @@ public class SimulatedAnnealingTest {
     @Test
     @DisplayName("bestRoute() gives the same result for the same seed")
     public void sameSeedsComputeSameOutput() {
-        Parameters parameters = new Parameters(42, 1.0, 0.9, 5, 0.01, 20, 1000);
+        Parameters parameters = new Parameters(67, 1.0, 0.9, 50, 0.01, 200, 1000);
 
         assertArrayEquals(SimulatedAnnealing.bestRoute(instance(), parameters).order(),
                 SimulatedAnnealing.bestRoute(instance(), parameters).order());

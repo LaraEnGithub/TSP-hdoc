@@ -9,6 +9,7 @@ import mx.unam.fciencias.tsp.data.InstanceReader;
 import mx.unam.fciencias.tsp.domain.Instance;
 import mx.unam.fciencias.tsp.domain.Route;
 import mx.unam.fciencias.tsp.exhaustive.Permutation;
+import mx.unam.fciencias.tsp.heuristic.Outcome;
 import mx.unam.fciencias.tsp.heuristic.SimulatedAnnealing;
 
 public final class Main {
@@ -49,11 +50,13 @@ public final class Main {
 
         Instance instance;
         Route route;
+        Outcome outcome = null;
         if (annealing) {
             Configuration configuration = PropertiesReader.read(Path.of(firstPath));
             Path databasePath = DatabaseBuilder.build(Path.of(configuration.sqlPath()));
             instance = new GraphDao(databasePath).load(cityIds);
-            route = SimulatedAnnealing.bestRoute(instance, configuration.parameters());
+            outcome = SimulatedAnnealing.bestRoute(instance, configuration.parameters());
+            route = outcome.route();
         } else {
             Path databasePath = DatabaseBuilder.build(Path.of(firstPath));
             instance = new GraphDao(databasePath).load(cityIds);
@@ -80,6 +83,10 @@ public final class Main {
         System.out.println("maximum  = " + instance.maxWeight());
         System.out.println("feasible = " + route.isFeasible());
         System.out.println("cost     = " + route.cost());
+        if (outcome != null) {
+            System.out.println("stopped  = " + outcome.reason() + " ("
+                    + outcome.interruptedBatches() + " batches cut short by maxBatchAttempts)");
+        }
         System.out.println(path);
     }
 }

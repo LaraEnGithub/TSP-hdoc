@@ -2,7 +2,8 @@ package mx.unam.fciencias.tsp.heuristic;
 
 public record Parameters(long seed, double initialTemperature, double coolingRate,
                          int batchSize, double epsilon,
-                         int maxBatchAttempts, long totalAttempts) {
+                         int maxBatchAttempts, long totalAttempts,
+                         double targetAcceptance, boolean searchTemperature) {
 
     public Parameters {
         if (initialTemperature <= 0.0) {
@@ -30,6 +31,10 @@ public record Parameters(long seed, double initialTemperature, double coolingRat
             throw new IllegalArgumentException(
                     "totalAttempts must be at least maxBatchAttempts (" + maxBatchAttempts
                             + "), but got " + totalAttempts);
+        }
+        if (targetAcceptance <= 0.0 || targetAcceptance >= 1.0) {
+            throw new IllegalArgumentException(
+                    "targetAcceptance must be in (0, 1), but got " + targetAcceptance);
         }
     }
 }

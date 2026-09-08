@@ -9,12 +9,13 @@ public final class SimulatedAnnealing {
     private SimulatedAnnealing() {
     }
 
-    public static Route bestRoute(Instance instance, Parameters parameters) {
+    public static Outcome bestRoute(Instance instance, Parameters parameters) {
         Random random = new Random(parameters.seed());
         Route current = Route.shuffled(instance, random);
         Route best = current;
         double temperature = parameters.initialTemperature();
         long totalAttempts = 0;
+        int interruptedBatches = 0;
 
         while (temperature > parameters.epsilon() && totalAttempts < parameters.totalAttempts()) {
             double previous = Double.POSITIVE_INFINITY;
@@ -24,12 +25,19 @@ public final class SimulatedAnnealing {
                 totalAttempts += result.attempts();
                 current = result.current();
                 best = result.best();
+                if (result.accepted() < parameters.batchSize()) {
+                    interruptedBatches++;
+                }
                 improved = result.average() < previous;
                 previous = result.average();
             }
             temperature *= parameters.coolingRate();
         }
-        return best;
+
+        StopReason reason = totalAttempts >= parameters.totalAttempts()
+                ? StopReason.ATTEMPTS_EXHAUSTED
+                : StopReason.FROZEN;
+        return new Outcome(best, reason, interruptedBatches);
     }
 
     static Batch batch(Route current, Route best, double temperature, Parameters parameters,
@@ -53,9 +61,9 @@ public final class SimulatedAnnealing {
             }
         }
         double average = accepted == 0 ? Double.POSITIVE_INFINITY : sum / accepted;
-        return new Batch(average, current, best, attempts);
+        return new Batch(average, current, best, attempts, accepted);
     }
 
-    record Batch(double average, Route current, Route best, int attempts) {
+    record Batch(double average, Route current, Route best, int attempts, int accepted) {
     }
 }

@@ -1,11 +1,35 @@
 package mx.unam.fciencias.tsp.heuristic;
 
 import java.util.Random;
+import mx.unam.fciencias.tsp.domain.Instance;
 import mx.unam.fciencias.tsp.domain.Route;
 
 public final class SimulatedAnnealing {
 
     private SimulatedAnnealing() {
+    }
+
+    public static Route bestRoute(Instance instance, Parameters parameters) {
+        Random random = new Random(parameters.seed());
+        Route current = Route.shuffled(instance, random);
+        Route best = current;
+        double temperature = parameters.initialTemperature();
+        long totalAttempts = 0;
+
+        while (temperature > parameters.epsilon() && totalAttempts < parameters.totalAttempts()) {
+            double previous = Double.POSITIVE_INFINITY;
+            boolean improved = true;
+            while (improved && totalAttempts < parameters.totalAttempts()) {
+                Batch result = batch(current, best, temperature, parameters, random);
+                totalAttempts += result.attempts();
+                current = result.current();
+                best = result.best();
+                improved = result.average() < previous;
+                previous = result.average();
+            }
+            temperature *= parameters.coolingRate();
+        }
+        return best;
     }
 
     static Batch batch(Route current, Route best, double temperature, Parameters parameters,

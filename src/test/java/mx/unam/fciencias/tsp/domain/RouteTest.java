@@ -66,6 +66,22 @@ public class RouteTest {
     }
 
     @Test
+    @DisplayName("shuffled() covers every position of the instance")
+    public void shuffledCoversEveryPosition() {
+        int[] positions = Route.shuffled(instance(), new Random(7)).order();
+
+        Arrays.sort(positions);
+        assertArrayEquals(new int[] {0, 1, 2, 3}, positions);
+    }
+
+    @Test
+    @DisplayName("shuffled() gives the same result for the same seed")
+    public void shuffledIsReproducibleWithTheSameSeed() {
+        assertArrayEquals(Route.shuffled(instance(), new Random(42)).order(),
+                Route.shuffled(instance(), new Random(42)).order());
+    }
+
+    @Test
     @DisplayName("the constructor rejects an order that does not cover every city")
     public void rejectsAnOrderOfTheWrongLength() {
         assertThrows(InvalidRouteException.class,

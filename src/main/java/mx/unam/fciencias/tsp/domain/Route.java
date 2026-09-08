@@ -19,6 +19,20 @@ public final class Route implements Solution {
         }
     }
 
+    public static Route shuffled(Instance instance, Random random) {
+        int[] order = new int[instance.size()];
+        for (int position = 0; position < order.length; position++) {
+            order[position] = position;
+        }
+        for (int last = order.length - 1; last > 0; last--) {
+            int other = random.nextInt(last + 1);
+            int position = order[last];
+            order[last] = order[other];
+            order[other] = position;
+        }
+        return new Route(instance, order, false);
+    }
+
     @Override
     public double cost() {
         double sum = 0.0;
@@ -32,7 +46,10 @@ public final class Route implements Solution {
     public Route neighbor(Random random) {
         int[] swapped = order.clone();
         int i = random.nextInt(swapped.length);
-        int j = random.nextInt(swapped.length);
+        int j;
+        do {
+            j = random.nextInt(swapped.length);
+        } while (j == i);
         int position = swapped[i];
         swapped[i] = swapped[j];
         swapped[j] = position;

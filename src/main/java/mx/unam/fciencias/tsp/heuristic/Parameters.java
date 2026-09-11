@@ -37,4 +37,9 @@ public record Parameters(long seed, double initialTemperature, double coolingRat
                     "targetAcceptance must be in (0, 1), but got " + targetAcceptance);
         }
     }
+
+    public Parameters withSeed(long other) {
+        return new Parameters(other, initialTemperature, coolingRate, batchSize, epsilon,
+                maxBatchAttempts, totalAttempts, targetAcceptance, searchTemperature);
+    }
 }

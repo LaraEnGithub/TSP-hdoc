@@ -12,7 +12,7 @@ import mx.unam.fciencias.tsp.exhaustive.Permutation;
 import mx.unam.fciencias.tsp.experiment.SeedSweep;
 import mx.unam.fciencias.tsp.experiment.Trial;
 import mx.unam.fciencias.tsp.experiment.TrialWriter;
-import mx.unam.fciencias.tsp.heuristic.ImprovementListener;
+import mx.unam.fciencias.tsp.heuristic.CostListener;
 import mx.unam.fciencias.tsp.heuristic.Outcome;
 import mx.unam.fciencias.tsp.heuristic.SimulatedAnnealing;
 
@@ -108,9 +108,10 @@ public final class Main {
             Configuration configuration = PropertiesReader.read(Path.of(firstPath));
             Path databasePath = DatabaseBuilder.build(Path.of(configuration.sqlPath()));
             instance = new GraphDao(databasePath).load(cityIds);
-            ImprovementListener listener = verbose
-                    ? (cost, temperature) -> System.err.println(cost + " " + temperature)
-                    : ImprovementListener.NONE;
+            CostListener listener = verbose
+                    ? (attempts, currentCost, bestCost, temperature) -> System.err.println(
+                            attempts + " " + currentCost + " " + bestCost + " " + temperature)
+                    : CostListener.NONE;
             outcome = SimulatedAnnealing.bestRoute(instance, configuration.parameters(), listener);
             route = outcome.route();
         } else {

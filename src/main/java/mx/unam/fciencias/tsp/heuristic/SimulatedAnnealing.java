@@ -47,7 +47,8 @@ public final class SimulatedAnnealing {
         StopReason reason = totalAttempts >= parameters.totalAttempts()
                 ? StopReason.ATTEMPTS_EXHAUSTED
                 : StopReason.FROZEN;
-        return new Outcome(best, reason, interruptedBatches, totalAttempts, totalAccepted);
+        return new Outcome(new Route(instance, best.order()), reason, interruptedBatches,
+                totalAttempts, totalAccepted);
     }
 
     static Batch batch(Route current, Route best, double temperature, Parameters parameters,

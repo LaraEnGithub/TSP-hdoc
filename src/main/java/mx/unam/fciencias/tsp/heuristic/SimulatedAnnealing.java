@@ -16,11 +16,11 @@ public final class SimulatedAnnealing {
     }
 
     public static Outcome bestRoute(Instance instance, Parameters parameters) {
-        return bestRoute(instance, parameters, ImprovementListener.NONE);
+        return bestRoute(instance, parameters, CostListener.NONE);
     }
 
     public static Outcome bestRoute(Instance instance, Parameters parameters,
-            ImprovementListener listener) {
+            CostListener listener) {
         Random random = new Random(parameters.seed());
         Route current = Route.shuffled(instance, random);
         Route best = current;
@@ -35,7 +35,7 @@ public final class SimulatedAnnealing {
             double previous = Double.POSITIVE_INFINITY;
             boolean improved = true;
             while (improved && totalAttempts < parameters.totalAttempts()) {
-                Batch result = batch(current, best, temperature, parameters, random, listener);
+                Batch result = batch(current, best, temperature, parameters, random);
                 totalAttempts += result.attempts();
                 totalAccepted += result.accepted();
                 current = result.current();
@@ -43,6 +43,7 @@ public final class SimulatedAnnealing {
                 if (result.accepted() < parameters.batchSize()) {
                     interruptedBatches++;
                 }
+                listener.records(totalAttempts, current.cost(), best.cost(), temperature);
                 improved = result.average() < previous;
                 previous = result.average();
             }
@@ -57,7 +58,7 @@ public final class SimulatedAnnealing {
     }
 
     static Batch batch(Route current, Route best, double temperature, Parameters parameters,
-            Random random, ImprovementListener listener) {
+            Random random) {
         double currentCost = current.cost();
         double sum = 0.0;
         int accepted = 0;
@@ -73,7 +74,6 @@ public final class SimulatedAnnealing {
                 sum += currentCost;
                 if (currentCost < best.cost()) {
                     best = current;
-                    listener.improved(currentCost, temperature);
                 }
             }
         }

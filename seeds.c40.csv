@@ -1,0 +1,3 @@
+# data/input-150.tsp Parameters[seed=67, initialTemperature=1000.0, coolingRate=0.9955, batchSize=4000, epsilon=1.0E-5, maxBatchAttempts=6000, totalAttempts=250000000, targetAcceptance=0.99, searchTemperature=true]
+seed,cost
+-5066874955572122218,0.17178324946157258

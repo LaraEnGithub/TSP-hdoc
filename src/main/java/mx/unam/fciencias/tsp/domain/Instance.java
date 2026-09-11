@@ -10,6 +10,7 @@ public final class Instance {
     private final double[][] weights;
     private final double maxWeight;
     private final double normalizer;
+    private final double[][] augmented;
 
     public Instance(int[] cityIds, double[] latitudes, double[] longitudes, double[][] weights) {
         requireArraysPresent(cityIds, latitudes, longitudes, weights);
@@ -20,6 +21,7 @@ public final class Instance {
         validateInvariants();
         this.maxWeight = computeMaxWeight();
         this.normalizer = computeNormalizer();
+        this.augmented = computeAugmentedWeights();
     }
 
     public int size() {
@@ -51,10 +53,22 @@ public final class Instance {
     }
 
     public double augmentedWeight(int i, int j) {
-        if (hasEdge(i, j)) {
-            return weight(i, j);
+        return augmented[i][j];
+    }
+
+    private double[][] computeAugmentedWeights() {
+        int k = cityIds.length;
+        double[][] matrix = new double[k][k];
+        for (int i = 0; i < k; i++) {
+            for (int j = i + 1; j < k; j++) {
+                double value = weights[i][j] != 0.0
+                        ? weights[i][j]
+                        : distance(i, j) * maxWeight;
+                matrix[i][j] = value;
+                matrix[j][i] = value;
+            }
         }
-        return distance(i, j) * maxWeight();
+        return matrix;
     }
 
     private static double[][] copyOf(double[][] matrix) {

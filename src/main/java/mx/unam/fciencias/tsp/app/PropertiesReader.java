@@ -30,7 +30,9 @@ public final class PropertiesReader {
                     Integer.parseInt(require(properties, "batchSize")),
                     Double.parseDouble(require(properties, "epsilon")),
                     Integer.parseInt(require(properties, "maxBatchAttempts")),
-                    Long.parseLong(require(properties, "totalAttempts")));
+                    Long.parseLong(require(properties, "totalAttempts")),
+                    Double.parseDouble(require(properties, "targetAcceptance")),
+                    flag(properties, "searchTemperature"));
         } catch (NumberFormatException e) {
             throw new ParameterException("a numeric parameter is malformed in " + path, e);
         }
@@ -42,6 +44,17 @@ public final class PropertiesReader {
         if (value == null) {
             throw new ParameterException("missing required property: " + key);
         }
-        return value;
+        return value.trim();
+    }
+
+    private static boolean flag(Properties properties, String key) {
+        String value = require(properties, key);
+        if (value.equals("true")) {
+            return true;
+        }
+        if (value.equals("false")) {
+            return false;
+        }
+        throw new ParameterException(key + " must be true or false, but got " + value);
     }
 }

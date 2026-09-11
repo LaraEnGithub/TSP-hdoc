@@ -9,6 +9,7 @@ import mx.unam.fciencias.tsp.data.InstanceReader;
 import mx.unam.fciencias.tsp.domain.Instance;
 import mx.unam.fciencias.tsp.domain.Route;
 import mx.unam.fciencias.tsp.exhaustive.Permutation;
+import mx.unam.fciencias.tsp.heuristic.ImprovementListener;
 import mx.unam.fciencias.tsp.heuristic.Outcome;
 import mx.unam.fciencias.tsp.heuristic.SimulatedAnnealing;
 
@@ -20,32 +21,36 @@ public final class Main {
     public static void main(String[] args) {
         boolean exhaustive = false;
         boolean annealing = false;
+        boolean verbose = false;
         List<String> paths = new ArrayList<>();
         for (String arg : args) {
             if (arg.equals("-p")) {
                 exhaustive = true;
             } else if (arg.equals("-a")) {
                 annealing = true;
+            } else if (arg.equals("-v")) {
+                verbose = true;
             } else {
                 paths.add(arg);
             }
         }
         if (paths.size() != 2 || (exhaustive && annealing)) {
-            System.err.println("usage: tsp [-p | -a] <path to the .sql dump, or to the .properties "
-                    + "configuration when using -a> <path to the .tsp instance>");
+            System.err.println("usage: tsp [-p | -a] [-v] <path to the .sql dump, or to the "
+                    + ".properties configuration when using -a> <path to the .tsp instance>");
             System.exit(1);
             return;
         }
 
         try {
-            run(paths.get(0), paths.get(1), exhaustive, annealing);
+            run(paths.get(0), paths.get(1), exhaustive, annealing, verbose);
         } catch (RuntimeException e) {
             System.err.println("error: " + (e.getMessage() == null ? e.toString() : e.getMessage()));
             System.exit(1);
         }
     }
 
-    private static void run(String firstPath, String tspPath, boolean exhaustive, boolean annealing) {
+    private static void run(String firstPath, String tspPath, boolean exhaustive,
+            boolean annealing, boolean verbose) {
         int[] cityIds = InstanceReader.read(Path.of(tspPath));
 
         Instance instance;
@@ -55,7 +60,10 @@ public final class Main {
             Configuration configuration = PropertiesReader.read(Path.of(firstPath));
             Path databasePath = DatabaseBuilder.build(Path.of(configuration.sqlPath()));
             instance = new GraphDao(databasePath).load(cityIds);
-            outcome = SimulatedAnnealing.bestRoute(instance, configuration.parameters());
+            ImprovementListener listener = verbose
+                    ? (cost, temperature) -> System.err.println(cost + " " + temperature)
+                    : ImprovementListener.NONE;
+            outcome = SimulatedAnnealing.bestRoute(instance, configuration.parameters(), listener);
             route = outcome.route();
         } else {
             Path databasePath = DatabaseBuilder.build(Path.of(firstPath));

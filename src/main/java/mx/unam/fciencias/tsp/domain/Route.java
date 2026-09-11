@@ -6,17 +6,19 @@ public final class Route implements Solution {
 
     private final Instance instance;
     private final int[] order;
+    private final double normalizedCost;
 
     public Route(Instance instance, int[] order) {
-        this(instance, order.clone(), true);
+        this.instance = instance;
+        this.order = order.clone();
+        validateOrder();
+        this.normalizedCost = totalCost();
     }
 
-    private Route(Instance instance, int[] order, boolean validate) {
+    private Route(Instance instance, int[] order, double normalizedCost) {
         this.instance = instance;
         this.order = order;
-        if (validate) {
-            validateOrder();
-        }
+        this.normalizedCost = normalizedCost;
     }
 
     public static Route shuffled(Instance instance, Random random) {
@@ -30,30 +32,34 @@ public final class Route implements Solution {
             order[last] = order[other];
             order[other] = position;
         }
-        return new Route(instance, order, false);
+        return new Route(instance, order);
     }
 
     @Override
     public double cost() {
-        double sum = 0.0;
-        for (int p = 0; p < order.length - 1; p++) {
-            sum += instance.augmentedWeight(order[p], order[p + 1]);
-        }
-        return sum / instance.normalizer();
+        return normalizedCost;
     }
 
     @Override
     public Route neighbor(Random random) {
-        int[] swapped = order.clone();
-        int i = random.nextInt(swapped.length);
+        int i = random.nextInt(order.length);
         int j;
         do {
-            j = random.nextInt(swapped.length);
+            j = random.nextInt(order.length);
         } while (j == i);
+        return neighbor(i, j);
+    }
+
+    Route neighbor(int i, int j) {
+        int[] swapped = order.clone();
+        double before = edgesAround(swapped, i, j);
         int position = swapped[i];
         swapped[i] = swapped[j];
         swapped[j] = position;
-        return new Route(instance, swapped, false);
+        double after = edgesAround(swapped, i, j);
+
+        return new Route(instance, swapped,
+                normalizedCost + (after - before) / instance.normalizer());
     }
 
     public boolean isFeasible() {
@@ -67,6 +73,26 @@ public final class Route implements Solution {
 
     public int[] order() {
         return order.clone();
+    }
+
+    private double totalCost() {
+        double sum = 0.0;
+        for (int p = 0; p < order.length - 1; p++) {
+            sum += instance.augmentedWeight(order[p], order[p + 1]);
+        }
+        return sum / instance.normalizer();
+    }
+
+    private double edgesAround(int[] order, int i, int j) {
+        return edgeAt(order, i - 1) + edgeAt(order, i)
+                + edgeAt(order, j - 1) + edgeAt(order, j);
+    }
+
+    private double edgeAt(int[] order, int p) {
+        if (p < 0 || p >= order.length - 1) {
+            return 0.0;
+        }
+        return instance.augmentedWeight(order[p], order[p + 1]);
     }
 
     private void validateOrder() {

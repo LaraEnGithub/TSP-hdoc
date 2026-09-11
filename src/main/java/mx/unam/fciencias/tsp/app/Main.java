@@ -86,6 +86,9 @@ public final class Main {
         if (outcome != null) {
             System.out.println("stopped  = " + outcome.reason() + " ("
                     + outcome.interruptedBatches() + " batches cut short by maxBatchAttempts)");
+            System.out.println("accepted = "
+                    + String.format("%.1f%%", 100.0 * outcome.accepted() / outcome.attempts())
+                    + " (" + outcome.accepted() + " of " + outcome.attempts() + " attempts)");
         }
         System.out.println(path);
     }

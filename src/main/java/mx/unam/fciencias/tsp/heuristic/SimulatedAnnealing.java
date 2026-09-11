@@ -16,6 +16,11 @@ public final class SimulatedAnnealing {
     }
 
     public static Outcome bestRoute(Instance instance, Parameters parameters) {
+        return bestRoute(instance, parameters, ImprovementListener.NONE);
+    }
+
+    public static Outcome bestRoute(Instance instance, Parameters parameters,
+            ImprovementListener listener) {
         Random random = new Random(parameters.seed());
         Route current = Route.shuffled(instance, random);
         Route best = current;
@@ -30,7 +35,7 @@ public final class SimulatedAnnealing {
             double previous = Double.POSITIVE_INFINITY;
             boolean improved = true;
             while (improved && totalAttempts < parameters.totalAttempts()) {
-                Batch result = batch(current, best, temperature, parameters, random);
+                Batch result = batch(current, best, temperature, parameters, random, listener);
                 totalAttempts += result.attempts();
                 totalAccepted += result.accepted();
                 current = result.current();
@@ -52,7 +57,7 @@ public final class SimulatedAnnealing {
     }
 
     static Batch batch(Route current, Route best, double temperature, Parameters parameters,
-            Random random) {
+            Random random, ImprovementListener listener) {
         double currentCost = current.cost();
         double sum = 0.0;
         int accepted = 0;
@@ -68,6 +73,7 @@ public final class SimulatedAnnealing {
                 sum += currentCost;
                 if (currentCost < best.cost()) {
                     best = current;
+                    listener.improved(currentCost, temperature);
                 }
             }
         }

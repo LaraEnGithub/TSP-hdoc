@@ -102,6 +102,58 @@ public class RouteTest {
                 () -> new Route(instance(), new int[] {0, 1, 2, 4}));
     }
 
+    @Test
+    @DisplayName("neighbor() carries the same cost as recomputing it from scratch")
+    public void neighborCostMatchesTheFullRecomputation() {
+        Instance instance = biggerInstance();
+        Random random = new Random(11);
+        Route route = Route.shuffled(instance, random);
+
+        for (int step = 0; step < 1000; step++) {
+            Route neighbor = route.neighbor(random);
+            double expected = new Route(instance, neighbor.order()).cost();
+
+            assertEquals(expected, neighbor.cost(), Math.abs(expected) * 1e-8,
+                    "the incremental cost is wrong at step " + step);
+            route = new Route(instance, neighbor.order());
+        }
+    }
+
+    @Test
+    @DisplayName("neighbor() cancels the shared edge when the two positions are adjacent")
+    public void adjacentSwapKeepsTheSharedEdge() {
+        Route route = new Route(instance(), new int[] {0, 1, 2, 3});
+
+        Route neighbor = route.neighbor(1, 2);
+        double expected = new Route(instance(), neighbor.order()).cost();
+
+        assertArrayEquals(new int[] {0, 2, 1, 3}, neighbor.order());
+        assertEquals(expected, neighbor.cost(), Math.abs(expected) * 1e-8);
+    }
+
+    private static Instance biggerInstance() {
+        int k = 8;
+        int[] cityIds = new int[k];
+        double[] latitudes = new double[k];
+        double[] longitudes = new double[k];
+        double[][] weights = new double[k][k];
+        for (int i = 0; i < k; i++) {
+            cityIds[i] = 10 * (i + 1);
+            latitudes[i] = -60.0 + 15.0 * i;
+            longitudes[i] = -120.0 + 30.0 * i;
+        }
+        for (int i = 0; i < k; i++) {
+            for (int j = i + 1; j < k; j++) {
+                if ((i + j) % 4 != 0) {
+                    double weight = 100.0 * (i + 1) + j;
+                    weights[i][j] = weight;
+                    weights[j][i] = weight;
+                }
+            }
+        }
+        return new Instance(cityIds, latitudes, longitudes, weights);
+    }
+
     private static Instance instance() {
         return new Instance(
                 new int[] {10, 20, 30, 40},

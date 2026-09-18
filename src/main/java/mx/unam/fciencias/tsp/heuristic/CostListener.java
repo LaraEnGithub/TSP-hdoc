@@ -1,11 +1,15 @@
 package mx.unam.fciencias.tsp.heuristic;
 
-@FunctionalInterface
 public interface CostListener {
 
     /** Does nothing, for the runs that do not care about the trace. */
-    CostListener NONE = (attempts, currentCost, bestCost, temperature) -> {
+    CostListener NONE = new CostListener() {
     };
 
-    void records(long attempts, double currentCost, double bestCost, double temperature);
+    default void improved(long evaluations, double cost) {
+    }
+
+    default void batched(long evaluations, double temperature,
+                         double minimum, double mean, double maximum) {
+    }
 }

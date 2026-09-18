@@ -35,7 +35,8 @@ public final class SimulatedAnnealing {
             double previous = Double.POSITIVE_INFINITY;
             boolean improved = true;
             while (improved && totalAttempts < parameters.totalAttempts()) {
-                Batch result = batch(current, best, temperature, parameters, random);
+                Batch result = batch(current, best, temperature, parameters, random,
+                        totalAttempts, listener);
                 totalAttempts += result.attempts();
                 totalAccepted += result.accepted();
                 current = result.current();
@@ -43,7 +44,6 @@ public final class SimulatedAnnealing {
                 if (result.accepted() < parameters.batchSize()) {
                     interruptedBatches++;
                 }
-                listener.records(totalAttempts, current.cost(), best.cost(), temperature);
                 improved = result.average() < previous;
                 previous = result.average();
             }
@@ -58,7 +58,7 @@ public final class SimulatedAnnealing {
     }
 
     static Batch batch(Route current, Route best, double temperature, Parameters parameters,
-            Random random) {
+            Random random, long evaluated, CostListener listener) {
         double currentCost = current.cost();
         double sum = 0.0;
         int accepted = 0;
@@ -72,8 +72,10 @@ public final class SimulatedAnnealing {
                 currentCost = candidateCost;
                 accepted++;
                 sum += currentCost;
+                listener.walked(evaluated + attempts, temperature, currentCost);
                 if (currentCost < best.cost()) {
                     best = current;
+                    listener.improved(evaluated + attempts, currentCost);
                 }
             }
         }

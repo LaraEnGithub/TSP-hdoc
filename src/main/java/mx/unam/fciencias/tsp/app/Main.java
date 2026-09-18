@@ -109,8 +109,7 @@ public final class Main {
             Path databasePath = DatabaseBuilder.build(Path.of(configuration.sqlPath()));
             instance = new GraphDao(databasePath).load(cityIds);
             CostListener listener = verbose
-                    ? (attempts, currentCost, bestCost, temperature) -> System.err.println(
-                            attempts + " " + currentCost + " " + bestCost + " " + temperature)
+                    ? (evaluations, cost) -> System.err.println("E:" + cost)
                     : CostListener.NONE;
             outcome = SimulatedAnnealing.bestRoute(instance, configuration.parameters(), listener);
             route = outcome.route();

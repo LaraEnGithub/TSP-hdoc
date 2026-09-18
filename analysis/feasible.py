@@ -9,8 +9,13 @@ BINS = 60
 RESULTS = Path("results")
 
 
+def encoding(source):
+    with source.open("rb") as raw:
+        return "utf-16" if raw.read(2) in (b"\xff\xfe", b"\xfe\xff") else "utf-8-sig"
+
+
 def read(source):
-    runs = pd.read_csv(source, comment="#")
+    runs = pd.read_csv(source, comment="#", encoding=encoding(source))
     return runs["cost"] if "cost" in runs.columns else None
 
 

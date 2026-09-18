@@ -1,8 +1,13 @@
 package mx.unam.fciencias.tsp.app;
 
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import mx.unam.fciencias.tsp.data.DataException;
 import mx.unam.fciencias.tsp.data.DatabaseBuilder;
 import mx.unam.fciencias.tsp.data.GraphDao;
 import mx.unam.fciencias.tsp.data.InstanceReader;
@@ -18,6 +23,8 @@ import mx.unam.fciencias.tsp.heuristic.SimulatedAnnealing;
 
 public final class Main {
 
+    private static final int WALK_SAMPLE = 500;
+
     private Main() {
     }
 
@@ -26,6 +33,7 @@ public final class Main {
             boolean exhaustive = false;
             boolean annealing = false;
             boolean verbose = false;
+            String walkPath = null;
             int runs = 0;
             int threads = Runtime.getRuntime().availableProcessors();
             List<String> paths = new ArrayList<>();
@@ -42,6 +50,8 @@ public final class Main {
                     runs = number(args, ++at, "-s");
                 } else if (arg.equals("-t")) {
                     threads = number(args, ++at, "-t");
+                } else if (arg.equals("-w")) {
+                    walkPath = text(args, ++at, "-w");
                 } else {
                     paths.add(arg);
                 }
@@ -50,13 +60,15 @@ public final class Main {
             int modes = (exhaustive ? 1 : 0) + (annealing ? 1 : 0) + (runs > 0 ? 1 : 0);
             if (paths.size() != 2 || modes > 1) {
                 System.err.println("usage: tsp [-p | -a | -s <runs>] [-v] [-t <threads>] "
+                        + "[-w <walk .csv, with -a>] "
                         + "<path to the .sql dump, or to the .properties configuration "
                         + "when using -a or -s> <path to the .tsp instance>");
                 System.exit(1);
                 return;
             }
 
-            run(paths.get(0), paths.get(1), exhaustive, annealing, verbose, runs, threads);
+            run(paths.get(0), paths.get(1), exhaustive, annealing, verbose, walkPath, runs,
+                    threads);
         } catch (RuntimeException e) {
             System.err.println("error: " + (e.getMessage() == null ? e.toString() : e.getMessage()));
             System.exit(1);
@@ -92,8 +104,44 @@ public final class Main {
         return value;
     }
 
+    private static String text(String[] args, int at, String flag) {
+        if (at >= args.length) {
+            throw new ParameterException(flag + " needs a path after it");
+        }
+        return args[at];
+    }
+
+    private static PrintStream openWalk(String path) {
+        try {
+            PrintStream stream = new PrintStream(Files.newOutputStream(Path.of(path)), false,
+                    StandardCharsets.UTF_8);
+            stream.println("evaluations,temperature,cost");
+            return stream;
+        } catch (IOException e) {
+            throw new DataException("cannot write the walk to " + path, e);
+        }
+    }
+
+    private static CostListener listener(boolean verbose, PrintStream walk) {
+        return new CostListener() {
+            @Override
+            public void improved(long evaluations, double cost) {
+                if (verbose) {
+                    System.err.println("E:" + cost);
+                }
+            }
+
+            @Override
+            public void walked(long evaluations, double temperature, double cost) {
+                if (walk != null && evaluations % WALK_SAMPLE == 0) {
+                    walk.println(evaluations + "," + temperature + "," + cost);
+                }
+            }
+        };
+    }
+
     private static void run(String firstPath, String tspPath, boolean exhaustive,
-            boolean annealing, boolean verbose, int runs, int threads) {
+            boolean annealing, boolean verbose, String walkPath, int runs, int threads) {
         int[] cityIds = InstanceReader.read(Path.of(tspPath));
 
         if (runs > 0) {
@@ -108,10 +156,15 @@ public final class Main {
             Configuration configuration = PropertiesReader.read(Path.of(firstPath));
             Path databasePath = DatabaseBuilder.build(Path.of(configuration.sqlPath()));
             instance = new GraphDao(databasePath).load(cityIds);
-            CostListener listener = verbose
-                    ? (evaluations, cost) -> System.err.println("E:" + cost)
-                    : CostListener.NONE;
-            outcome = SimulatedAnnealing.bestRoute(instance, configuration.parameters(), listener);
+            PrintStream walk = walkPath == null ? null : openWalk(walkPath);
+            try {
+                outcome = SimulatedAnnealing.bestRoute(instance, configuration.parameters(),
+                        listener(verbose, walk));
+            } finally {
+                if (walk != null) {
+                    walk.close();
+                }
+            }
             route = outcome.route();
         } else {
             Path databasePath = DatabaseBuilder.build(Path.of(firstPath));

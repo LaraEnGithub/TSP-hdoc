@@ -51,15 +51,25 @@ public final class Route implements Solution {
     }
 
     Route neighbor(int i, int j) {
-        int[] swapped = order.clone();
-        double before = edgesAround(swapped, i, j);
-        int position = swapped[i];
-        swapped[i] = swapped[j];
-        swapped[j] = position;
-        double after = edgesAround(swapped, i, j);
+        int from = Math.min(i, j);
+        int to = Math.max(i, j);
+        int[] reversed = order.clone();
+        double before = edgeAt(reversed, from - 1) + edgeAt(reversed, to);
+        reverse(reversed, from, to);
+        double after = edgeAt(reversed, from - 1) + edgeAt(reversed, to);
 
-        return new Route(instance, swapped,
+        return new Route(instance, reversed,
                 normalizedCost + (after - before) / instance.normalizer());
+    }
+
+    private static void reverse(int[] order, int from, int to) {
+        while (from < to) {
+            int position = order[from];
+            order[from] = order[to];
+            order[to] = position;
+            from++;
+            to--;
+        }
     }
 
     public boolean isFeasible() {
@@ -81,11 +91,6 @@ public final class Route implements Solution {
             sum += instance.augmentedWeight(order[p], order[p + 1]);
         }
         return sum / instance.normalizer();
-    }
-
-    private double edgesAround(int[] order, int i, int j) {
-        return edgeAt(order, i - 1) + edgeAt(order, i)
-                + edgeAt(order, j - 1) + edgeAt(order, j);
     }
 
     private double edgeAt(int[] order, int p) {

@@ -43,7 +43,7 @@ public final class TrialWriter {
 
     private void report() {
         double seconds = (System.nanoTime() - startedAt) / 1e9;
-        progress.printf("%d/%d runs   %.1f s   %.2f runs/s   best %.8f (seed %d)%n",
+        progress.printf("%d/%d runs   %.1f s   %.2f runs/s   best %s (seed %d)%n",
                 done, runs, seconds, done / seconds, best.cost(), best.seed());
     }
 }

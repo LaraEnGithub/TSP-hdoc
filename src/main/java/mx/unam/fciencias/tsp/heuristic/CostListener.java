@@ -9,7 +9,6 @@ public interface CostListener {
     default void improved(long evaluations, double cost) {
     }
 
-    default void batched(long evaluations, double temperature,
-                         double minimum, double mean, double maximum) {
+    default void walked(long evaluations, double temperature, double cost) {
     }
 }

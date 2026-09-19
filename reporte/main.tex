@@ -234,14 +234,14 @@ mx.unam.fciencias.tsp
     \subsection{An\'alsis con Python}
     Adicionalmente, se agregan en el proyecto dos \textit{scripts} realizados en Python con el fin de analizar los resultados de las ejecuciones y generar las gr\'aficas mostradas más adelante.
 
-    \subsubsection{\inlinecode{feasible.py}}
+    \subsubsection{feasible.py}
 
 
 Toma uno o varios CSV de barrido de semillas y por cada uno filtra las corridas factibles, usando el mismo umbral que la propiedad de factibilidad $\Rightarrow f(P) \le 1$: (\inlinecode{FEASIBLE = 1.0}), y reporta qué fracción de las corridas lo cumplió. Además calcula estadísticas de resumen sobre las factibles: mejor, mediana, promedio, peor y desviación estándar. Genera un histograma de los costos factibles.
 
 
     
-    \subsubsection{\inlinecode{plot.py}}
+    \subsubsection{plot.py}
 Grafica la traza de una única ejecución. Toma el CSV \inlinecode{evaluations,cost} que produce \inlinecode{CostListener} en modo verboso como una curva, que genera una gráfica de costo aceptado contra número de evaluaciones. 
 % ==============================================================================
 % 5. DETALLES DE IMPLEMENTACIÓN
